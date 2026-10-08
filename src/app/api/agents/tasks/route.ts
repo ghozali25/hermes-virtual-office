@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createTask, listAgents, listAssignees, listTasks } from '@/lib/hermes/kanban'
-import { visible } from '@/lib/hermes/office-membership'
-import type { TaskOrigin } from '@/types/hermes'
+import { createTask, listAgents, listAssignees, listTasks } from '@/lib/agent/kanban'
+import { visible } from '@/lib/agent/office-membership'
+import type { TaskOrigin } from '@/types/agent'
 import { assertLocalWriteRequest } from '@/lib/local-guard'
 
 export const dynamic = 'force-dynamic'

@@ -29,7 +29,7 @@ import {
   IDLE_SPOTS as OFFICE_IDLE_SPOTS,
   type Desk,
 } from './layout'
-import type { Agent, Meeting, Task } from '@/types/hermes'
+import type { Agent, Meeting, Task } from '@/types/agent'
 
 export type SceneAgent = AnimAgent & {
   data: Agent

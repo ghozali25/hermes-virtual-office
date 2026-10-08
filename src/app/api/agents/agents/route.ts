@@ -10,8 +10,8 @@ import {
   purgeTasks,
   setProfileModel,
   tasksForAssignee,
-} from '@/lib/hermes/kanban'
-import { hiddenNames, isHidden, hide, show } from '@/lib/hermes/office-membership'
+} from '@/lib/agent/kanban'
+import { hiddenNames, isHidden, hide, show } from '@/lib/agent/office-membership'
 import { assertLocalWriteRequest } from '@/lib/local-guard'
 
 export const dynamic = 'force-dynamic'

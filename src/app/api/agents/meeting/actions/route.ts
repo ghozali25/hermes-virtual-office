@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { matchOwner, parseActionItems } from '@/lib/hermes/action-items'
-import { listAgents, listTasks } from '@/lib/hermes/kanban'
-import { listMeetings, readArchived } from '@/lib/hermes/meeting'
+import { matchOwner, parseActionItems } from '@/lib/agent/action-items'
+import { listAgents, listTasks } from '@/lib/agent/kanban'
+import { listMeetings, readArchived } from '@/lib/agent/meeting'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic'
  *
  * This is a PROPOSAL — nothing is written. Minutes routinely contain items nobody
  * agreed to action, so the user picks. Creating them is
- * `POST /api/hermes/tasks`, which is shared with every other source
+ * `POST /api/agents/tasks`, which is shared with every other source
  * rather than duplicated here.
  */
 export async function GET(req: NextRequest) {

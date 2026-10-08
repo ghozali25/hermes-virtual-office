@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomUUID } from 'crypto'
 import {
   getChatSession,
   listChatSessions,
   readChatHistory,
   resetChatSession,
   sendChatMessage,
-} from '@/lib/hermes/chat'
-import { listAgents, listProfiles, listTasks } from '@/lib/hermes/kanban'
+} from '@/lib/agent/chat'
+import { listAgents, listProfiles, listTasks } from '@/lib/agent/kanban'
 import { assertLocalWriteRequest } from '@/lib/local-guard'
 
 export const dynamic = 'force-dynamic'
@@ -65,7 +66,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       agent,
       session,
-      messages: await readChatHistory(session.profile, session.id),
+      messages: await readChatHistory(session.agent, { sessionId: session.id }),
     })
   } catch (err) {
     return NextResponse.json(
@@ -98,11 +99,16 @@ export async function POST(req: NextRequest) {
       return bad(`profil "${profile}" tidak ada — buat agentnya dulu`)
     }
 
-    const result = await sendChatMessage(agent, profile, message)
+    const result = await sendChatMessage(agent, message)
     return NextResponse.json({
       success: true,
-      session: result.session,
-      reply: result.reply,
+      session: { id: result.sessionId, agent, startedAt: new Date().toISOString(), lastMessageAt: new Date().toISOString(), messageCount: 1 },
+      reply: {
+        id: randomUUID(),
+        role: 'assistant',
+        content: result.text,
+        createdAt: new Date().toISOString()
+      },
     })
   } catch (err) {
     return NextResponse.json(

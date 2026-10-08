@@ -99,7 +99,7 @@ export default function ChatPanel({
       sessions?: Session[]
       agents?: string[]
       profiles?: string[]
-    }>('/api/hermes/chat', { cache: 'no-store' })
+    }>('/api/agents/chat', { cache: 'no-store' })
     if (!res.ok) {
       setErr(res.error || 'gagal memuat daftar percakapan')
       setLoading(false)
@@ -127,7 +127,7 @@ export default function ChatPanel({
     setLoading(true)
     setErr(null)
     fetchJson<{ session: Session | null; messages?: Message[] }>(
-      `/api/hermes/chat?agent=${encodeURIComponent(openAgent)}`,
+      `/api/agents/chat?agent=${encodeURIComponent(openAgent)}`,
       { cache: 'no-store' },
     )
       .then((res) => {
@@ -160,7 +160,7 @@ export default function ChatPanel({
     setMessages((m) => [...m, { role: 'user', content: text, ts: Date.now() }])
     setDraft('')
     try {
-      const res = await fetchJson<{ session: Session; reply: string }>('/api/hermes/chat', {
+      const res = await fetchJson<{ session: Session; reply: string }>('/api/agents/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ agent: openAgent, message: text }),
@@ -188,7 +188,7 @@ export default function ChatPanel({
     if (!openAgent) return
     setBusy(true)
     setErr(null)
-    const res = await fetchJson(`/api/hermes/chat?agent=${encodeURIComponent(openAgent)}`, {
+    const res = await fetchJson(`/api/agents/chat?agent=${encodeURIComponent(openAgent)}`, {
       method: 'DELETE',
     })
     if (!res.ok) {
@@ -212,7 +212,7 @@ export default function ChatPanel({
     setCreateBusy(true)
     setErr(null)
     try {
-      const res = await fetchJson<{ name: string }>('/api/hermes/agents', {
+      const res = await fetchJson<{ name: string }>('/api/agents/agents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'create', name }),

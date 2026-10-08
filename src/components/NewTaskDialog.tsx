@@ -24,7 +24,7 @@ export default function NewTaskDialog() {
     setBusy(true)
     setNote(null)
     try {
-      const res = await fetchJson<{ task: { id: string } }>('/api/hermes/tasks', {
+      const res = await fetchJson<{ task: { id: string } }>('/api/agents/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

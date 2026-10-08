@@ -15,7 +15,7 @@
  * the UI asks rather than guessing.
  */
 
-import type { ActionItem } from '@/types/hermes'
+import type { ActionItem } from '@/types/agent'
 
 /** Lines that start a list item in markdown. */
 const BULLET = /^\s*(?:[-*+]|\d+[.)])\s+/

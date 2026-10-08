@@ -12,7 +12,7 @@
  */
 import * as THREE from 'three'
 import { ROLE_COLORS } from './layout'
-import type { AgentRole } from '@/types/hermes'
+import type { AgentRole } from '@/types/agent'
 
 export type Limb = {
   shoulder: THREE.Object3D

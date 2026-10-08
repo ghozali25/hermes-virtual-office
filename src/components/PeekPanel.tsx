@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useOffice } from '@/lib/store'
 import Collapsible from './Collapsible'
-import type { Agent, Task } from '@/types/hermes'
+import type { Agent, Task } from '@/types/agent'
 import { fetchJson } from '@/lib/api'
 
 type RunInfo = {
@@ -43,7 +43,7 @@ export default function PeekPanel() {
       // Polls every 5 s: a dropped packet must leave the last known log on screen
       // rather than clearing it or flashing an error.
       const res = await fetchJson<{ log?: string; runs?: RunInfo[] }>(
-        `/api/hermes/tasks/${task.id}`,
+        `/api/agents/tasks/${task.id}`,
         { cache: 'no-store' },
       )
       if (!alive || !res.ok || !res.data) return
@@ -65,7 +65,7 @@ export default function PeekPanel() {
     setBusy(true)
     setNote(null)
     try {
-      const res = await fetchJson(`/api/hermes/tasks/${task.id}`, {
+      const res = await fetchJson(`/api/agents/tasks/${task.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, message: msg }),

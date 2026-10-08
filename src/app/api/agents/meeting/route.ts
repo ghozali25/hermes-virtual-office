@@ -6,8 +6,8 @@ import {
   listMeetings,
   readArchived,
   startMeeting,
-} from '@/lib/hermes/meeting'
-import { listAgents, listTasks } from '@/lib/hermes/kanban'
+} from '@/lib/agent/meeting'
+import { listAgents, listTasks } from '@/lib/agent/kanban'
 import { assertLocalWriteRequest } from '@/lib/local-guard'
 
 export const dynamic = 'force-dynamic'
@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic'
  * provider is configured, which meetings are live right now, and the previous
  * meetings on disk. All three come from here so the UI makes one request.
  *
- * `GET /api/hermes/meeting?id=<meetingId>` returns one archived transcript.
+ * `GET /api/agents/meeting?id=<meetingId>` returns one archived transcript.
  */
 export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get('id')
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
     const meeting = await startMeeting({
       topic: String(body?.topic || ''),
       participants,
-      moderator: body?.moderator ? String(body.moderator) : undefined,
+      moderator: body?.moderator ? String(body.moderator) : participants[0] || '',
       mode: body?.mode,
     })
     return NextResponse.json({ meeting })

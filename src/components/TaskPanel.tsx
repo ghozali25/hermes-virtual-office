@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useOffice } from '@/lib/store'
 import Collapsible from './Collapsible'
 import ModelPicker, { type ModelChoice } from './ModelPicker'
-import type { Task } from '@/types/hermes'
+import type { Task } from '@/types/agent'
 import { fetchJson } from '@/lib/api'
 
 type RunInfo = {
@@ -83,7 +83,7 @@ export default function TaskPanel() {
     let alive = true
     setLoading(true)
     setErr(null)
-    fetchJson<{ runs?: RunInfo[]; log?: string; task?: Task }>(`/api/hermes/tasks/${taskId}`, {
+    fetchJson<{ runs?: RunInfo[]; log?: string; task?: Task }>(`/api/agents/tasks/${taskId}`, {
       cache: 'no-store',
     })
       .then((res) => {
@@ -107,7 +107,7 @@ export default function TaskPanel() {
   useEffect(() => {
     if (!taskId || models.length) return
     let alive = true
-    fetchJson<{ models?: ModelChoice[] }>('/api/hermes/models', { cache: 'no-store' }).then((res) => {
+    fetchJson<{ models?: ModelChoice[] }>('/api/agents/models', { cache: 'no-store' }).then((res) => {
       if (alive && res.ok) setModels(res.data?.models || [])
     })
     return () => {
@@ -129,7 +129,7 @@ export default function TaskPanel() {
     setNote(null)
     try {
       const res = await fetchJson<{ note?: string; mine?: boolean }>(
-        `/api/hermes/tasks/${taskId}`,
+        `/api/agents/tasks/${taskId}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -140,7 +140,7 @@ export default function TaskPanel() {
       setNote(res.data?.note || (action === 'set-model' ? 'Model disimpan.' : 'Selesai.'))
       await load()
       const fresh = await fetchJson<{ runs?: RunInfo[]; log?: string; task?: Task }>(
-        `/api/hermes/tasks/${taskId}`,
+        `/api/agents/tasks/${taskId}`,
         { cache: 'no-store' },
       )
       if (fresh.ok) {

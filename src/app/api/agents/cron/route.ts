@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { assertLocalWriteRequest } from '@/lib/local-guard'
-import { actOnJob, createJob, listJobs, listRuns, parseLimit, type JobAction } from '@/lib/hermes/cron'
+import { actOnJob, createJob, listJobs, listRuns, parseLimit, type JobAction } from '@/lib/agent/cron'
 
 export const dynamic = 'force-dynamic'
 
 /**
  * Cron job management.
  *
- * GET  /api/hermes/cron            — every job + its recent runs
- * GET  /api/hermes/cron?id=<job>   — one job + its runs
- * POST /api/hermes/cron            — create a job, or act on one
+ * GET  /api/agents/cron            — every job + its recent runs
+ * GET  /api/agents/cron?id=<job>   — one job + its runs
+ * POST /api/agents/cron            — create a job, or act on one
  *
  * The UI asks for a second click before an action runs, but that is a UI
  * courtesy: this endpoint executes what it is told, because it cannot tell a

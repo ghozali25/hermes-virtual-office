@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import type { Agent, Meeting, Task } from '@/types/hermes'
+import type { Agent, Meeting, Task } from '@/types/agent'
 import { useOffice } from '@/lib/store'
 import { columnOf } from '@/lib/office/board'
 import { NIGHT_PALETTE, paletteFor } from '@/lib/office/layout'

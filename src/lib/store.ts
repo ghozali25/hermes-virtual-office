@@ -1,7 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
-import type { Agent, ArchivedMeeting, Meeting, Task } from '@/types/hermes'
+import type { Agent, ArchivedMeeting, Meeting, Task } from '@/types/agent'
 import { fetchJson } from './api'
 
 const POLL_MS = Number(process.env.NEXT_PUBLIC_POLL_MS || 4000)
@@ -49,7 +49,7 @@ export const useOffice = create<State>((set) => ({
   newTaskOpen: false,
 
   async load() {
-    const res = await fetchJson<{ tasks?: Task[]; agents?: Agent[] }>('/api/hermes/tasks', {
+    const res = await fetchJson<{ tasks?: Task[]; agents?: Agent[] }>('/api/agents/tasks', {
       cache: 'no-store',
     })
     if (!res.ok || !res.data) {
@@ -67,7 +67,7 @@ export const useOffice = create<State>((set) => ({
       configured?: boolean
       live?: Meeting[]
       archived?: ArchivedMeeting[]
-    }>('/api/hermes/meeting', { cache: 'no-store' })
+    }>('/api/agents/meeting', { cache: 'no-store' })
     if (!res.ok || !res.data) return
     const d = res.data
     // `live` are meetings in this process; `archived` are the transcripts on disk

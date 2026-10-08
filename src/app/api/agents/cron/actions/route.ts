@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getJob } from '@/lib/hermes/cron'
-import { listAgents, listTasks } from '@/lib/hermes/kanban'
-import type { Candidate } from '@/types/hermes'
+import { getJob } from '@/lib/agent/cron'
+import { listAgents, listTasks } from '@/lib/agent/kanban'
+import type { Candidate } from '@/types/agent'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic'
  * proposal rather than inventing one, so the task carries the real message.
  *
  * `GET ?from=<jobId>` — nothing is written; creating goes through the shared
- * `/api/hermes/tasks`.
+ * `/api/agents/tasks`.
  */
 export async function GET(req: NextRequest) {
   const from = req.nextUrl.searchParams.get('from')
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 
   // Only a job that is actually in trouble has something to hand over. A healthy
   // job has no work to create, and offering one would be noise.
-  if (job.failureStreak > 0) {
+  if ((job.failureStreak ?? 0) > 0) {
     items.push({
       text: `Perbaiki cron "${job.name}" (gagal ${job.failureStreak}×)`,
       owner: '',

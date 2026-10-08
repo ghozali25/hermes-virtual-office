@@ -61,7 +61,7 @@ export default function AgentSpawnPanel({
     setLoading(true)
     setErr(null)
     try {
-      const res = await fetchJson<{ available?: Row[] }>('/api/hermes/agents', {
+      const res = await fetchJson<{ available?: Row[] }>('/api/agents/agents', {
         cache: 'no-store',
       })
       if (!res.ok) throw new Error(res.error || 'gagal memuat daftar agent')
@@ -81,7 +81,7 @@ export default function AgentSpawnPanel({
   useEffect(() => {
     if (!open || models.length) return
     let alive = true
-    fetchJson<{ models?: ModelChoice[] }>('/api/hermes/models', { cache: 'no-store' }).then((res) => {
+    fetchJson<{ models?: ModelChoice[] }>('/api/agents/models', { cache: 'no-store' }).then((res) => {
       if (alive && res.ok) setModels(res.data?.models || [])
     })
     return () => {
@@ -95,7 +95,7 @@ export default function AgentSpawnPanel({
     setNote(null)
     try {
       const hit = models.find((m) => m.model === model)
-      const res = await fetchJson('/api/hermes/agents', {
+      const res = await fetchJson('/api/agents/agents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'set-model', name, model, provider: hit?.provider }),
@@ -116,7 +116,7 @@ export default function AgentSpawnPanel({
     setErr(null)
     setNote(null)
     try {
-      const res = await fetchJson<{ purged?: number }>('/api/hermes/agents', {
+      const res = await fetchJson<{ purged?: number }>('/api/agents/agents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, name }),
@@ -149,7 +149,7 @@ export default function AgentSpawnPanel({
     setErr(null)
     setNote(null)
     try {
-      const res = await fetchJson<{ name: string }>('/api/hermes/agents', {
+      const res = await fetchJson<{ name: string }>('/api/agents/agents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'create', name, description: newDesc.trim() }),

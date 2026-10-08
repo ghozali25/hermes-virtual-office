@@ -1,4 +1,4 @@
-import type { AgentRole } from '@/types/hermes'
+import type { AgentRole } from '@/types/agent'
 
 /**
  * Office layout: the single source of truth for every placement.

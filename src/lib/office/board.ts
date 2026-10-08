@@ -16,7 +16,7 @@
 import * as THREE from 'three'
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js'
 import { BOARD_COLUMNS, KANBAN_BOARD } from './layout'
-import type { Task } from '@/types/hermes'
+import type { Task } from '@/types/agent'
 
 /** Display 3D board has four columns; keep every task within those bounds. */
 export function columnOf(status: string): number {

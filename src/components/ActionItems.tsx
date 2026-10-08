@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { Candidate, TaskOrigin } from '@/types/hermes'
+import type { Candidate, TaskOrigin } from '@/types/agent'
 import { fetchJson } from '@/lib/api'
 
 /**
@@ -68,7 +68,7 @@ export default function ActionItems({
         created?: { id: string }[]
         failed?: unknown[]
         error?: { message?: string }
-      }>('/api/hermes/tasks', {
+      }>('/api/agents/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -69,7 +69,7 @@ export default function MeetingPanel({
     let alive = true
     setItemsBusy(true)
     fetchJson<{ items?: Candidate[]; roster?: string[] }>(
-      `/api/hermes/meeting/actions?from=${encodeURIComponent(openId)}`,
+      `/api/agents/meeting/actions?from=${encodeURIComponent(openId)}`,
       { cache: 'no-store' },
     )
       .then((res) => {
@@ -107,7 +107,7 @@ export default function MeetingPanel({
     setBusy(true)
     setErr(null)
     try {
-      const res = await fetchJson('/api/hermes/meeting', {
+      const res = await fetchJson('/api/agents/meeting', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic, participants: picked, moderator }),
@@ -132,7 +132,7 @@ export default function MeetingPanel({
     setArchive(null)
     try {
       const res = await fetchJson<{ id: string; body: string }>(
-        `/api/hermes/meeting?id=${encodeURIComponent(id)}`,
+        `/api/agents/meeting?id=${encodeURIComponent(id)}`,
         { cache: 'no-store' },
       )
       if (!res.ok || !res.data) throw new Error(res.error || 'gagal membuka transkrip')

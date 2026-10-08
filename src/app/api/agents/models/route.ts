@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { listModels } from '@/lib/hermes/kanban'
+import { listModels } from '@/lib/agent/kanban'
 
 export const dynamic = 'force-dynamic'
 

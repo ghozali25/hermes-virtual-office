@@ -10,7 +10,7 @@ import {
   setTaskModel,
   taskLog,
   unblockTask,
-} from '@/lib/hermes/kanban'
+} from '@/lib/agent/kanban'
 import { assertLocalWriteRequest } from '@/lib/local-guard'
 
 export const dynamic = 'force-dynamic'
@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic'
  * One task: its run history and log tail, or an intervention.
  *
  * The `id` is checked against the board before anything else. A dynamic segment
- * matches ANY path, so without this check `/api/hermes/tasks/<anything>` answered
+ * matches ANY path, so without this check `/api/agents/tasks/<anything>` answered
  * 200 with an empty payload — a misspelled or deleted task looked like a real task
  * that simply had no runs. A 404 is the honest answer.
  */
