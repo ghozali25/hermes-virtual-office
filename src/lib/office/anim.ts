@@ -315,9 +315,23 @@ const TABLE: Record<Activity, (a: AnimAgent, t: number) => void> = {
 /** Apply the pose for this frame. `dt` ramps `ease` so transitions are not snaps. */
 export function animate(a: AnimAgent, t: number, dt: number) {
   a.ease = Math.min(1, a.ease + dt * 3.5)
+  
+  if (a.avatar.mixer && a.avatar.actions) {
+    a.avatar.mixer.update(dt)
+    const { Walk, Idle } = a.avatar.actions
+    
+    if (a.activity === 'walking') {
+      if (Walk) Walk.setEffectiveWeight(1)
+      if (Idle) Idle.setEffectiveWeight(0)
+    } else {
+      if (Walk) Walk.setEffectiveWeight(0)
+      if (Idle) Idle.setEffectiveWeight(1)
+    }
+    return
+  }
+
   const fn = TABLE[a.activity] || TABLE.idle
   fn(a, t)
-  // blend the first frames in from a neutral posture
   const e = a.ease
   if (e < 1) {
     const av = a.avatar
