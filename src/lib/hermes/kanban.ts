@@ -17,11 +17,75 @@ import path from 'node:path'
 import { promisify } from 'node:util'
 import type { Agent, AgentRole, NewTaskInput, Task, TaskOrigin, TaskStatus } from '@/types/hermes'
 
+type RawTask = {
+  id: string
+  title: string
+  body?: string | null
+  assignee?: string | null
+  status: string
+  priority?: number | null
+  created_by?: string | null
+  created_at?: number | null
+  updated_at?: number | null
+  model_override?: string | null
+  provider_override?: string | null
+}
+
 const run = promisify(execFile)
 
 const HERMES_BIN = process.env.HERMES_BIN || 'hermes'
 const BOARD = process.env.HERMES_KANBAN_BOARD || ''
 const TIMEOUT_MS = Number(process.env.KANBAN_TIMEOUT_MS || 20_000)
+
+/**
+ * Demo mode: when the Hermes CLI is not installed, the office renders with
+ * sample data so the UI can be explored without a backend.
+ *
+ * ponytail: single boolean flag. Upgrade path: remove when hermes CLI is available.
+ */
+let _demoMode: boolean | null = null // null = not yet probed
+async function isDemoMode(): Promise<boolean> {
+  if (_demoMode !== null) return _demoMode
+  // Fast check: if the configured path is an absolute path, check file existence.
+  // If it's a bare name ('hermes'), try spawning with a short timeout.
+  if (path.isAbsolute(HERMES_BIN)) {
+    try {
+      await access(HERMES_BIN)
+      _demoMode = false
+    } catch {
+      _demoMode = true
+    }
+  } else {
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const child = execFile(HERMES_BIN, ['--version'], { timeout: 3000 }, (err) => {
+          if (err) reject(err); else resolve()
+        })
+        child.stdin?.end()
+      })
+      _demoMode = false
+    } catch {
+      _demoMode = true
+    }
+  }
+  if (_demoMode) console.log('[hermes-office] Demo mode: Hermes CLI not found, using sample data')
+  return _demoMode
+}
+
+const DEMO_TASKS: RawTask[] = [
+  { id: 't_demo0001', title: 'Setup project repository', status: 'done', assignee: 'backend-dev', priority: 1, created_at: 1700000000, updated_at: 1700003600 },
+  { id: 't_demo0002', title: 'Design landing page mockup', status: 'running', assignee: 'frontend-dev', priority: 2, created_at: 1700010000, updated_at: 1700020000 },
+  { id: 't_demo0003', title: 'Write API integration tests', status: 'todo', assignee: 'qa-tester', priority: 3, created_at: 1700020000 },
+  { id: 't_demo0004', title: 'Deploy staging environment', status: 'ready', assignee: 'devops-eng', priority: 2, created_at: 1700030000 },
+  { id: 't_demo0005', title: 'Research caching strategy', status: 'review', assignee: 'researcher', priority: 1, created_at: 1700040000, updated_at: 1700050000 },
+  { id: 't_demo0006', title: 'Coordinate sprint planning', status: 'running', assignee: 'default', priority: 1, created_at: 1700050000, updated_at: 1700060000 },
+]
+const DEMO_PROFILES = ['default', 'backend-dev', 'frontend-dev', 'qa-tester', 'devops-eng', 'researcher']
+const DEMO_ASSIGNEES = DEMO_PROFILES.map((name) => ({
+  name,
+  on_disk: true,
+  counts: { todo: 1 },
+}))
 
 /**
  * Short TTL memo for CLI READS.
@@ -95,20 +159,6 @@ async function kanbanJson<T>(args: string[]): Promise<T> {
 
 /* ------------------------------------------------------------------ tasks -- */
 
-type RawTask = {
-  id: string
-  title: string
-  body?: string | null
-  assignee?: string | null
-  status: string
-  priority?: number | null
-  created_by?: string | null
-  created_at?: number | null
-  updated_at?: number | null
-  model_override?: string | null
-  provider_override?: string | null
-}
-
 /**
  * Parse the origin marker out of `created_by`.
  *
@@ -164,6 +214,7 @@ function toTask(r: RawTask): Task {
  * the rest of this file keeps paying for.)
  */
 export async function listTasks(opts: { includeArchived?: boolean } = {}): Promise<Task[]> {
+  if (await isDemoMode()) return DEMO_TASKS.map(toTask)
   const args = opts.includeArchived ? ['list', '--archived'] : ['list']
   const rows = await kanbanJson<RawTask[]>(args)
   return rows.map(toTask)
@@ -343,7 +394,46 @@ export function providersToModels(raw: RawProvider[]): ModelChoice[] {
 }
 
 export async function listModels(): Promise<ModelChoice[]> {
-  return providersToModels(await kanbanConfig<RawProvider[]>('custom_providers'))
+  const [config, nineRouter] = await Promise.all([
+    kanbanConfig<RawProvider[]>('custom_providers').catch(() => [] as RawProvider[]),
+    fetch9routerModels(),
+  ])
+  const out = providersToModels(config)
+  // Merge 9router models; hermes config wins on id collision.
+  const seen = new Set(out.map((c) => c.model))
+  for (const m of nineRouter) {
+    if (!seen.has(m.model)) {
+      seen.add(m.model)
+      out.push(m)
+    }
+  }
+  return out.sort((a, b) => a.label.localeCompare(b.label))
+}
+
+const NINEROUTER_BASE_URL = (process.env.NINEROUTER_BASE_URL || '').replace(/\/+$/, '').replace(/\/v1$/, '')
+const NINEROUTER_API_KEY = process.env.NINEROUTER_API_KEY || ''
+const NINEROUTER_TTL_MS = 30_000
+let ninerouterCache: { at: number; models: ModelChoice[] } | null = null
+
+/** Fetch models from 9router's OpenAI-compatible /v1/models endpoint. */
+async function fetch9routerModels(): Promise<ModelChoice[]> {
+  if (!NINEROUTER_BASE_URL) return []
+  if (ninerouterCache && Date.now() - ninerouterCache.at < NINEROUTER_TTL_MS) return ninerouterCache.models
+  try {
+    const res = await fetch(`${NINEROUTER_BASE_URL}/v1/models`, {
+      headers: NINEROUTER_API_KEY ? { Authorization: `Bearer ${NINEROUTER_API_KEY}` } : {},
+    })
+    if (!res.ok) return ninerouterCache?.models ?? []
+    const body = (await res.json()) as { data?: { id: string }[] }
+    const models: ModelChoice[] = (body.data ?? [])
+      .filter((m) => m.id)
+      .map((m) => ({ model: m.id, provider: '9router', label: `${m.id} · 9router` }))
+    ninerouterCache = { at: Date.now(), models }
+    return models
+  } catch {
+    // Network error — return stale cache or empty.
+    return ninerouterCache?.models ?? []
+  }
 }
 
 type RawProvider = {
@@ -481,6 +571,9 @@ export function roleFor(name: string): AgentRole {
  * assigning it work is what brings it into the office.
  */
 export async function listAssignees(): Promise<{ name: string; onDisk: boolean; total: number }[]> {
+  if (await isDemoMode()) {
+    return DEMO_ASSIGNEES.map((r) => ({ name: r.name, onDisk: true, total: 1 }))
+  }
   const raw = await kanbanJson<RawAssignee[]>(['assignees'])
   return raw
     .map((r) => ({
@@ -508,6 +601,7 @@ function hermesHome(): string {
  * thing `hermes profile list` counts.
  */
 export async function listProfiles(): Promise<string[]> {
+  if (await isDemoMode()) return [...DEMO_PROFILES]
   const out: string[] = []
 
   // `default` is the install's own profile and lives at the Hermes root

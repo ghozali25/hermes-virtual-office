@@ -779,6 +779,29 @@ void (async () => {
     if (m2?.provider !== 'alpha') problems.push('dedupe kept the wrong provider for a shared model id')
     check('model catalogue dedupes ids and skips unreachable providers', problems.length === 0, problems.join(' | '))
 
+    // 9router merge: hermes config models win on id collision; 9router-only ids appear.
+    {
+      const mp: string[] = []
+      const hermes = providersToModels([
+        { name: 'alpha', base_url: 'http://a/v1', model: 'shared', models: { honly: {} } },
+      ])
+      const nineRouter = [
+        { model: 'shared', provider: '9router', label: 'shared · 9router' },
+        { model: 'nr-only', provider: '9router', label: 'nr-only · 9router' },
+      ]
+      // Simulate merge logic from listModels
+      const merged = [...hermes]
+      const seenIds = new Set(merged.map((c) => c.model))
+      for (const m of nineRouter) {
+        if (!seenIds.has(m.model)) { seenIds.add(m.model); merged.push(m) }
+      }
+      const sharedEntry = merged.find((c) => c.model === 'shared')
+      if (sharedEntry?.provider !== 'alpha') mp.push('hermes config should win collision')
+      if (!merged.find((c) => c.model === 'nr-only' && c.provider === '9router')) mp.push('9router-only model missing')
+      if (merged.filter((c) => c.model === 'shared').length !== 1) mp.push('duplicate survived merge')
+      check('9router merge: hermes wins collision, 9router-only models added', mp.length === 0, mp.join(' | '))
+    }
+
     // The balloon is the only thing keeping a meeting turn from covering the room,
     // and it has to survive a token with no spaces in it (URLs, file paths).
     const wrapped = wrapBubble('halo dunia ini pesan yang cukup panjang untuk diuji pemenggalannya sekarang')
